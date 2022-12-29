@@ -30,7 +30,38 @@ const readDir = async () => {
 
 };
 
+const getMinimumAmountOfUsers = (modules) => {
+    let auxProvidersByUser = {};
+    let auxUsedProviders = new Set();
+    for (const m in modules) {
+        const providers = modules[m];
+        for (const p in providers) {
+            const usersForProvider = providers[p];
+            auxUsedProviders.add(p)
+            for (const u of usersForProvider) {
+                auxProvidersByUser[u] ? auxProvidersByUser[u].push(p) : auxProvidersByUser[u] = [p]
+            }
+        }
+    }
+
+    let users = []
+
+    for (const u in auxProvidersByUser) {
+        for (const p of auxProvidersByUser[u]) {
+            if (auxUsedProviders.has(p)) {
+                users.push(u);
+                auxUsedProviders.delete(p)
+            }
+        }
+
+        if (auxUsedProviders.size === 0) return new Set(users);
+    }
+}
+
 (async () => {
-    const result = await readDir();
-    console.log('RESULT: ', result);
+    const partA = await readDir();
+    console.log('Parte A: ', partA);
+
+    const partB = getMinimumAmountOfUsers(partA);
+    console.log('Parte B: ', partB);
 })();
