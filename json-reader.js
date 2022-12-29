@@ -1,25 +1,18 @@
 const fs = require('fs');
-const async = require('async');
 const filesDir = './pruebas/';
 
-
-let providersModulesFromJSON = {
-    auth_module: {},
-    content_module: {}
-}
-
-fs.readdir(filesDir, function (err, data) {
-    if (err) throw err;
-
-    data.forEach(function (fileName) {
-        fs.readFile(filesDir + fileName, "utf8", (err, jsonString) => {
-            if (err) {
-                console.log("Error reading file from disk:", err);
-                return;
+const readDir = async () => {
+    return new Promise(async (resolve, reject) => {
+        try {
+            const providersModulesFromJSON = {
+                auth_module: {},
+                content_module: {}
             }
-            try {
-                const newJSON = JSON.parse(jsonString);
+            const data = await fs.promises.readdir(filesDir);
 
+            for (const fileName of data) {
+                const jsonString = await fs.promises.readFile(filesDir + fileName, "utf8");
+                const newJSON = JSON.parse(jsonString);
                 providersModulesFromJSON.auth_module[newJSON.provider.auth_module] ?
                     providersModulesFromJSON.auth_module[newJSON.provider.auth_module].push(fileName) :
                     providersModulesFromJSON.auth_module[newJSON.provider.auth_module] = [fileName]
@@ -27,11 +20,17 @@ fs.readdir(filesDir, function (err, data) {
                 providersModulesFromJSON.content_module[newJSON.provider.content_module] ?
                     providersModulesFromJSON.content_module[newJSON.provider.content_module].push(fileName) :
                     providersModulesFromJSON.content_module[newJSON.provider.content_module] = [fileName]
-
-                    console.log(providersModulesFromJSON)
-            } catch (err) {
-                console.log("Error parsing JSON string:", err);
             }
-        })
+            resolve(providersModulesFromJSON);
+        } catch (error) {
+            console.error('ERROR: ', error);
+            reject(error);
+        }
     });
-});
+
+};
+
+(async () => {
+    const result = await readDir();
+    console.log('RESULT: ', result);
+})();
