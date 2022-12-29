@@ -1,35 +1,37 @@
 const fs = require('fs');
+const async = require('async');
+const filesDir = './pruebas/';
 
-const fileNames = process.argv.splice(2);
 
 let providersModulesFromJSON = {
     auth_module: {},
     content_module: {}
 }
 
-console.log('fileNames', fileNames)
+fs.readdir(filesDir, function (err, data) {
+    if (err) throw err;
 
-fileNames.forEach(fileName => {
-    fs.readFile(fileName, "utf8", (err, jsonString) => {
-        if (err) {
-            console.log("Error reading file from disk:", err);
-            return;
-        }
-        try {
-            const newJSON = JSON.parse(jsonString);
-            if (providersModulesFromJSON.auth_module[newJSON.provider.auth_module]) {
-                providersModulesFromJSON.auth_module[newJSON.provider.auth_module].push(fileName)
-            } else {
-                providersModulesFromJSON.auth_module[newJSON.provider.auth_module] = [fileName]
+    data.forEach(function (fileName) {
+        fs.readFile(filesDir + fileName, "utf8", (err, jsonString) => {
+            if (err) {
+                console.log("Error reading file from disk:", err);
+                return;
             }
-            if (providersModulesFromJSON.content_module[newJSON.provider.content_module]) {
-                providersModulesFromJSON.content_module[newJSON.provider.content_module].push(fileName)
-            } else {
-                providersModulesFromJSON.content_module[newJSON.provider.content_module] = [fileName]
+            try {
+                const newJSON = JSON.parse(jsonString);
+
+                providersModulesFromJSON.auth_module[newJSON.provider.auth_module] ?
+                    providersModulesFromJSON.auth_module[newJSON.provider.auth_module].push(fileName) :
+                    providersModulesFromJSON.auth_module[newJSON.provider.auth_module] = [fileName]
+
+                providersModulesFromJSON.content_module[newJSON.provider.content_module] ?
+                    providersModulesFromJSON.content_module[newJSON.provider.content_module].push(fileName) :
+                    providersModulesFromJSON.content_module[newJSON.provider.content_module] = [fileName]
+
+                    console.log(providersModulesFromJSON)
+            } catch (err) {
+                console.log("Error parsing JSON string:", err);
             }
-            console.log('providersModulesFromJSON', providersModulesFromJSON)
-        } catch (err) {
-            console.log("Error parsing JSON string:", err);
-        }
+        })
     });
 });
